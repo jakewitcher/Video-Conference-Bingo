@@ -195,10 +195,10 @@ let render (state: State) (dispatch: Msg -> unit) =
         prop.children [
             Html.div [
                 prop.style [ style.margin 15 ]
-                prop.classes [ Bulma.Container; Bulma.IsLarge; Bulma.HasTextCentered ]
+                prop.classes [ Bulma.IsLarge; Bulma.IsFullwidth ]
                 prop.children [
                     Html.h1 [
-                        prop.classes [ Bulma.IsSize3; Bulma.HasTextWeightBold; Bulma.HasTextGreyDark ]
+                        prop.classes [ Bulma.IsSize3; Bulma.HasTextWeightBold; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered; ]
                         prop.text "Video Conference Bingo"
                     ]
                 ]

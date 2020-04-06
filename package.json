@@ -3,7 +3,8 @@
   "scripts": {
     "start": "node server/server.js",
     "dev-server": "webpack-dev-server",
-    "build": "webpack"
+    "dev-build": "webpack",
+    "build": ""
   },
   "dependencies": {
     "express": "^4.17.1",
