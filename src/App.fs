@@ -290,7 +290,7 @@ let snark =
       "You should lie down after all that hard work."
       "Do your coworkers know how you spend your time?"
       "I hope this meeting wasn't important."
-      "Are you always this lazy?" ]
+      "Keep this up and you'll definitely get that promotion!" ]
 
 let pickRandom list =
     let rnd = Random()

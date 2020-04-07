@@ -521,7 +521,7 @@ function resetButton(isWinCondition$$1, dispatch$$4) {
   return Object(_fable_Feliz_0_68_10_Interop_fs__WEBPACK_IMPORTED_MODULE_6__["reactElement"])("div", Object(_fable_fable_library_2_4_16_Util_js__WEBPACK_IMPORTED_MODULE_3__["createObj"])(xs$$9, 0));
 }
 const icons = Object(_fable_fable_library_2_4_16_List_js__WEBPACK_IMPORTED_MODULE_2__["ofArray"])(["fas fa-hotdog", "fas fa-beer", "fas fa-ghost", "fas fa-kiwi-bird", "fas fa-fighter-jet", "fas fa-pizza-slice"]);
-const snark = Object(_fable_fable_library_2_4_16_List_js__WEBPACK_IMPORTED_MODULE_2__["ofArray"])(["Congratulations, your boss will be so proud.", "I bet you feel productive now.", "And to think, you're getting paid for this.", "You should lie down after all that hard work.", "Do your coworkers know how you spend your time?", "I hope this meeting wasn't important.", "Are you always this lazy?"]);
+const snark = Object(_fable_fable_library_2_4_16_List_js__WEBPACK_IMPORTED_MODULE_2__["ofArray"])(["Congratulations, your boss will be so proud.", "I bet you feel productive now.", "And to think, you're getting paid for this.", "You should lie down after all that hard work.", "Do your coworkers know how you spend your time?", "I hope this meeting wasn't important.", "Keep this up and you'll definitely get that promotion!"]);
 function pickRandom(list$$14) {
   const rnd$$1 = {};
   const index$$1 = Object(_fable_fable_library_2_4_16_Util_js__WEBPACK_IMPORTED_MODULE_3__["randomNext"])(0, Object(_fable_fable_library_2_4_16_List_js__WEBPACK_IMPORTED_MODULE_2__["length"])(list$$14)) | 0;
