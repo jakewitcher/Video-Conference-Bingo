@@ -289,7 +289,7 @@ let snark =
       "And to think, you're getting paid for this."
       "You should lie down after all that hard work."
       "Do your coworkers know how you spend your time?"
-      "I hope this meeting wasn't important importaant"
+      "I hope this meeting wasn't important."
       "Are you always this lazy?" ]
 
 let pickRandom list =
