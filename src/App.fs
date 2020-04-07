@@ -25,7 +25,8 @@ type Tile =
 type BingoCard = Tile list
 
 type State =
-    { BingoCard: BingoCard }
+    { BingoCard: BingoCard
+      WinConditionMet: bool }
 
 type Msg =
     | ToggleSelection of Position
@@ -85,16 +86,16 @@ let descriptions =
       "\"I'm going to put everyone on mute\""
       "\"Sorry, you go first\""
       "\"I'll be right back\""
-      "\"Sorry, that was my {family member}\""
+      "\"Sorry, that was {family member}\""
       "\"Do you hear that?\""
       "\"Can you repeat that?\""
       "\"I'm having trouble hearing you\""
-      "A dog barks in the background"
+      "A dog barking"
       "A child walks in the room"
-      "Someone's video freezes"
-      "Someone's mic causes feedback"
+      "The video freezes"
+      "A mic causes feedback"
       "A toilet flushes"
-      "You hear someone talking in the background"
+      "Background voices"
       "Someone's phone rings"    
       ]
 
@@ -115,12 +116,56 @@ let generateTiles() =
         createTile position description status)
 
 let init() =
-    { BingoCard = generateTiles() }
+    { BingoCard = generateTiles()
+      WinConditionMet = false }
 
 let toggleSelected status =
     if status = Selected then Unselected
     elif status = Unselected then Selected
     else status
+
+let isHorizontalWin tiles =
+    tiles
+    |> List.groupBy (fun tile -> tile.Position.Row)
+    |> List.exists (fun (_,ts) -> List.length ts = 5)
+
+let isVerticalWin tiles =
+    tiles 
+    |> List.groupBy (fun tile -> tile.Position.Column)
+    |> List.exists (fun (_,ts) -> List.length ts = 5)
+
+let isDiagonalWin tiles =
+    let tilesSet =
+        tiles
+        |> List.map (fun tile -> tile.Position)
+        |> Set.ofList
+
+    let topLeftToBottomRight =
+        [ { Column = A; Row = One }
+          { Column = B; Row = Two }
+          { Column = D; Row = Four }
+          { Column = E; Row = Five } ]
+        |> Set.ofList              
+
+    let bottomLeftTopRight =
+        [ { Column = A; Row = Five }
+          { Column = B; Row = Four }
+          { Column = D; Row = Two }
+          { Column = E; Row = One } ]
+        |> Set.ofList      
+
+    Set.isSubset topLeftToBottomRight tilesSet || 
+    Set.isSubset bottomLeftTopRight tilesSet
+
+let checkWinCondition tiles =
+    let isWinCondition tiles =
+        isVerticalWin tiles ||
+        isHorizontalWin tiles ||
+        isDiagonalWin tiles
+    
+    tiles
+    |> List.filter (fun tile -> tile.Status = Selected || tile.Status = FreeSpace)
+    |> isWinCondition
 
 let update (msg: Msg) (state: State): State =
     match msg with
@@ -132,10 +177,14 @@ let update (msg: Msg) (state: State): State =
                 then { tile with Status = toggleSelected tile.Status }
                 else tile)
 
-        { state with BingoCard = nextCard }
+        { state with 
+            BingoCard = nextCard
+            WinConditionMet = checkWinCondition nextCard }
 
     | ResetBingoCard ->
-        { state with BingoCard = generateTiles() }  
+        { state with 
+            BingoCard = generateTiles()
+            WinConditionMet = false }  
 
 let renderTile tile dispatch =
     Html.div [
@@ -190,36 +239,108 @@ let renderBingoCard card dispatch =
         ]
     ]
 
-let render (state: State) (dispatch: Msg -> unit) =
+let title =
     Html.div [
+        prop.style [ style.margin 15; style.padding 10 ]
+        prop.classes [ Bulma.IsLarge; Bulma.IsFullwidth ]
+        prop.children [
+            Html.h1 [
+                prop.classes [ Bulma.IsSize3; Bulma.HasTextWeightBold; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
+                prop.text "Video Conference Bingo"
+            ]
+        ]
+    ]
+
+let gameBoard (state: State) (dispatch: Msg -> unit) =
+    Html.div [
+        prop.className Bulma.Container
+        prop.children [ renderBingoCard state.BingoCard dispatch ]
+    ]
+
+let resetButton isWinCondition (dispatch: Msg -> unit) =
+    Html.div [
+        prop.className [ Bulma.Container; Bulma.IsFullwidth; Bulma.HasTextCentered ]
+        prop.style [ style.paddingBottom 25; style.paddingTop 15 ]
+        prop.children [
+            Html.button [
+                prop.className [ 
+                    true, Bulma.Button
+                    true, Bulma.HasTextDanger
+                    true, Bulma.HasTextCentered
+                    true, Bulma.IsLarge
+                    isWinCondition, Bulma.HasBackgroundLight ]
+                prop.text "Reset Bingo Card"
+                prop.onClick (fun _ -> dispatch ResetBingoCard)
+            ]
+        ]
+    ]
+
+let icons = 
+    [ "fas fa-hotdog"
+      "fas fa-beer"
+      "fas fa-ghost"
+      "fas fa-kiwi-bird"
+      "fas fa-fighter-jet"
+      "fas fa-pizza-slice" ]
+
+let snark =
+    [ "Congratulations, your boss will be so proud."
+      "I bet you feel productive now."
+      "And to think, you're getting paid for this."
+      "You should lie down after all that hard work."
+      "Do your coworkers know how you spend your time?"
+      "I hope this meeting wasn't important importaant"
+      "Are you always this lazy?" ]
+
+let pickRandom list =
+    let rnd = Random()
+    let index = rnd.Next(List.length list)
+
+    list.[index]
+
+let winView (dispatch: Msg -> unit) =
+    Html.div [
+        prop.style [ style.margin 55; style.marginBottom 75 ]
+        prop.className [ Bulma.Hero; Bulma.IsCentered; Bulma.Box ]
         prop.children [
             Html.div [
-                prop.style [ style.margin 15 ]
-                prop.classes [ Bulma.IsLarge; Bulma.IsFullwidth ]
+                prop.className Bulma.HeroBody
                 prop.children [
-                    Html.h1 [
-                        prop.classes [ Bulma.IsSize3; Bulma.HasTextWeightBold; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered; ]
-                        prop.text "Video Conference Bingo"
+                    Html.div [
+                        prop.className [ Bulma.HasTextDanger; Bulma.HasTextCentered; Bulma.IsFullwidth ]
+                        prop.children [
+                            Html.i [
+                                prop.className [ (pickRandom icons) + " fa-5x fa-spin" ]
+                            ] 
+                        ]                        
                     ]
+                                       
+
+                    Html.h2 [
+                        prop.style [ style.margin 10 ]
+                        prop.classes [ Bulma.IsSize1; Bulma.HasTextWeightBold; Bulma.HasTextDanger; Bulma.IsFullwidth; Bulma.HasTextCentered ]
+                        prop.text "You've won!"
+                    ]
+
+                    Html.p [
+                        prop.style [ style.marginBottom 15 ]
+                        prop.classes [ Bulma.IsSize4; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
+                        prop.text (pickRandom snark)
+                    ]               
                 ]
             ]
+        ]
+    ]
 
-            Html.div [
-                prop.className Bulma.Container
-                prop.children [ renderBingoCard state.BingoCard dispatch ]
-            ]
-
-            Html.div [
-                prop.className [ Bulma.Container; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-                prop.style [ style.paddingBottom 25 ]
-                prop.children [
-                    Html.button [
-                        prop.className [ Bulma.Button; Bulma.HasTextDanger; Bulma.HasTextCentered; Bulma.IsLarge ]
-                        prop.text "Reset Bingo Card"
-                        prop.onClick (fun _ -> dispatch ResetBingoCard)
-                    ]
-                ]
-            ]
+let render (state: State) (dispatch: Msg -> unit) =
+    Html.div [
+        prop.className [ state.WinConditionMet, Bulma.HasBackgroundGreyLight ]
+        prop.children [
+            title            
+            if state.WinConditionMet
+            then winView dispatch
+            else gameBoard state dispatch
+            resetButton state.WinConditionMet dispatch
         ]
     ]
 
