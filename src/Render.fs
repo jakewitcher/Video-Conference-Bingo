@@ -4,101 +4,6 @@ open Feliz
 open State
 open System
 
-let div (classes: string list) (children: ReactElement list) =
-  Html.div [
-    prop.className classes
-    prop.children children
-  ]
-
-let renderTile tile dispatch =
-    Html.div [
-        prop.style [ style.paddingLeft 10; style.paddingRight 10 ]
-        prop.className [ 
-            true, Bulma.Tile
-            true, Bulma.IsChild
-            // true, Bulma.Box
-             
-        ]
-        prop.onClick (fun _ -> dispatch (ToggleSelection tile.Position))
-        prop.children [ 
-            Html.p [
-                prop.style [ style.height 100; style.padding 20 ]
-                prop.className [ 
-                    true, Bulma.Box
-                    true, Bulma.HasTextCentered
-                    tile.Status = FreeSpace, Bulma.HasBackgroundDanger
-                    tile.Status = Selected, Bulma.HasBackgroundDanger 
-                    tile.Status = Unselected, Bulma.HasBackgroundLight
-                    tile.Status = FreeSpace, Bulma.HasTextLight
-                    tile.Status = Selected, Bulma.HasTextLight
-                    tile.Status = Unselected, Bulma.HasTextGreyDark ]
-                prop.children [
-                    Html.text tile.Description
-                ]
-            ]
-        ]
-    ]
-
-let renderRow row dispatch =
-    Html.div [
-        prop.style [ style.marginLeft 15; style.marginRight 15 ]
-        prop.classes [ Bulma.Tile; Bulma.IsParent ]
-        prop.children [
-            for tile in row do 
-                renderTile tile dispatch
-        ]
-    ]
-
-let renderBingoCard card dispatch =
-    let rows =
-        card
-        |> List.chunkBySize 5
-    
-    Html.div [
-        prop.classes [ Bulma.Tile; Bulma.IsAncestor; Bulma.IsVertical; Bulma.Box ]
-        prop.style [ style.margin 25; style.marginLeft 35; style.marginRight 35 ]
-        prop.children [
-            for row in rows do
-                renderRow row dispatch
-        ]
-    ]
-
-let title =
-    Html.div [
-        prop.style [ style.margin 15; style.padding 10 ]
-        prop.classes [ Bulma.IsLarge; Bulma.IsFullwidth ]
-        prop.children [
-            Html.h1 [
-                prop.classes [ Bulma.IsSize3; Bulma.HasTextWeightBold; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-                prop.text "Video Conference Bingo"
-            ]
-        ]
-    ]
-
-let gameBoard (state: State) (dispatch: Msg -> unit) =
-    Html.div [
-        prop.className Bulma.Container
-        prop.children [ renderBingoCard state.BingoCard dispatch ]
-    ]
-
-let resetButton isWinCondition (dispatch: Msg -> unit) =
-    Html.div [
-        prop.className [ Bulma.Container; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-        prop.style [ style.paddingBottom 25; style.paddingTop 15 ]
-        prop.children [
-            Html.button [
-                prop.className [ 
-                    true, Bulma.Button
-                    true, Bulma.HasTextDanger
-                    true, Bulma.HasTextCentered
-                    true, Bulma.IsLarge
-                    isWinCondition, Bulma.HasBackgroundLight ]
-                prop.text "Reset Bingo Card"
-                prop.onClick (fun _ -> dispatch ResetBingoCard)
-            ]
-        ]
-    ]
-
 let icons = 
     [ "fas fa-hotdog"
       "fas fa-beer"
@@ -116,54 +21,262 @@ let snark =
       "I hope this meeting wasn't important."
       "Keep this up and you'll definitely get that promotion." ]
 
-let pickRandom list =
-    let rnd = Random()
-    let index = rnd.Next(List.length list)
+module TitleView =
+    let rendertitle =
+        Html.h1 [
+            prop.classes [ 
+                Bulma.IsSize2
+                Bulma.HasTextWeightBold
+                Bulma.HasTextGreyDark
+                Bulma.IsFullwidth
+                Bulma.HasTextCentered 
+            ]
 
-    list.[index]
+            prop.text "Video Conference Bingo"
+        ]
 
-let winView (dispatch: Msg -> unit) =
-    Html.div [
-        prop.style [ style.margin 55; style.marginBottom 75 ]
-        prop.className [ Bulma.Hero; Bulma.IsCentered; Bulma.Box ]
-        prop.children [
-            Html.div [
-                prop.className Bulma.HeroBody
-                prop.children [
-                    Html.div [
-                        prop.className [ Bulma.HasTextDanger; Bulma.HasTextCentered; Bulma.IsFullwidth ]
-                        prop.children [
-                            Html.i [
-                                prop.className [ (pickRandom icons) + " fa-5x fa-spin" ]
-                            ] 
-                        ]                        
-                    ]
-                                       
+    let renderTitleView =
+        Html.div [
+            prop.style [ 
+                style.margin 15
+                style.padding 10 
+            ]
 
-                    Html.h2 [
-                        prop.style [ style.margin 10 ]
-                        prop.classes [ Bulma.IsSize1; Bulma.HasTextWeightBold; Bulma.HasTextDanger; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-                        prop.text "You've won!"
-                    ]
+            prop.classes [ 
+                Bulma.IsLarge
+                Bulma.IsFullwidth 
+            ]
 
-                    Html.p [
-                        prop.style [ style.marginBottom 15 ]
-                        prop.classes [ Bulma.IsSize4; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-                        prop.text (pickRandom snark)
-                    ]               
-                ]
+            prop.children [ 
+                rendertitle 
             ]
         ]
-    ]
+
+module BingoCardView =
+    let renderTileDescription tile =
+        let isSelected = 
+            tile.Status = Selected || 
+            tile.Status = FreeSpace
+
+        Html.p [
+            prop.style [ 
+                style.height 125
+                style.display.flex
+                style.alignItems.center
+                style.justifyContent.center
+            ]
+
+            prop.className [ 
+                true, Bulma.Box
+                true, Bulma.HasTextCentered
+                isSelected, Bulma.HasBackgroundDanger
+                isSelected, Bulma.HasTextLight
+                not isSelected, Bulma.HasBackgroundLight
+                not isSelected, Bulma.HasTextGreyDark 
+            ]
+
+            prop.text tile.Description
+        ]
+
+    let renderTile tile dispatch =
+        Html.div [
+            prop.style [ 
+                style.paddingLeft 10 
+                style.paddingRight 10 
+            ]
+
+            prop.className [ 
+                Bulma.Tile
+                Bulma.IsChild 
+            ]
+
+            prop.children [ 
+                renderTileDescription tile 
+            ]
+
+            prop.onClick (fun _ -> dispatch (ToggleSelection tile.Position))
+        ]
+
+    let renderRow row dispatch =
+        Html.div [
+            prop.style [ 
+                style.marginLeft 15
+                style.marginRight 15 
+            ]
+
+            prop.className [ 
+                Bulma.Tile
+                Bulma.IsParent 
+            ]
+            
+            prop.children [
+                for tile in row do 
+                    renderTile tile dispatch
+            ]
+        ]
+
+    let renderBingoCard card dispatch =
+        let rows =
+            List.chunkBySize 5 card
+        
+        Html.div [
+            prop.style [ 
+                style.margin 25
+                style.marginLeft 35
+                style.marginRight 35 
+            ]
+
+            prop.classes [ 
+                Bulma.Tile
+                Bulma.IsAncestor
+                Bulma.IsVertical
+                Bulma.Box 
+            ]
+            
+            prop.children [
+                for row in rows do
+                    renderRow row dispatch
+            ]
+        ]
+
+    let renderBingoCardView (state: State) (dispatch: Msg -> unit) =
+        Html.div [
+            prop.className Bulma.Container
+
+            prop.children [ 
+                renderBingoCard state.BingoCard dispatch 
+            ]
+        ]    
+
+module ResetButtonView =
+    let renderResetButton isWinCondition (dispatch: Msg -> unit) =
+        Html.button [
+            prop.className [ 
+                true, Bulma.Button
+                true, Bulma.HasTextDanger
+                true, Bulma.HasTextCentered
+                true, Bulma.IsLarge
+                isWinCondition, Bulma.HasBackgroundLight 
+            ]
+            
+            prop.onClick (fun _ -> dispatch ResetBingoCard)
+            prop.text "Reset Bingo Card"
+        ]
+
+    let renderResetButtonView isWinCondition (dispatch: Msg -> unit) =
+        Html.div [
+            prop.style [ 
+                style.paddingBottom 25
+                style.paddingTop 15
+            ]
+
+            prop.className [ 
+                Bulma.Container
+                Bulma.IsFullwidth
+                Bulma.HasTextCentered
+            ]
+            
+            prop.children [
+                renderResetButton isWinCondition dispatch
+            ]
+        ]
+
+module WinConditionView =
+    let pickRandom list =
+        let rnd = Random()
+        let index = rnd.Next(List.length list)
+
+        list.[index]
+
+    let renderWinIcon =
+        Html.i [
+            prop.className (sprintf "%s fa-5x fa-spin" (pickRandom icons))
+        ]
+
+    let renderWinIconView =
+        Html.div [
+            prop.className [ 
+                Bulma.HasTextDanger
+                Bulma.HasTextCentered
+                Bulma.IsFullwidth
+            ]
+
+            prop.children [
+                 renderWinIcon
+            ]                        
+        ]
+
+    let renderAnnouncementView =
+        Html.h2 [
+            prop.style [ 
+                style.margin 10 
+            ]
+
+            prop.classes [ 
+                Bulma.IsSize1
+                Bulma.HasTextWeightBold
+                Bulma.HasTextDanger
+                Bulma.IsFullwidth
+                Bulma.HasTextCentered 
+            ]
+
+            prop.text "You've won!"
+        ]
+
+    let renderSnarkCommentView =
+        Html.p [
+            prop.style [ style.marginBottom 15 ]
+            prop.classes [ Bulma.IsSize4; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
+            prop.text (pickRandom snark)
+        ]
+
+    let renderWinBodyView =
+        Html.div [
+            prop.className Bulma.HeroBody
+            prop.children [
+                renderWinIconView
+                renderAnnouncementView                               
+                renderSnarkCommentView              
+            ]
+        ]
+
+    let renderWinConditionView (dispatch: Msg -> unit) =
+        Html.div [
+            prop.style [ 
+                style.margin 55
+                style.marginBottom 75 
+            ]
+
+            prop.className [ 
+                Bulma.Hero
+                Bulma.IsCentered
+                Bulma.Box 
+            ]
+
+            prop.children [
+                renderWinBodyView
+            ]
+        ]
 
 let render (state: State) (dispatch: Msg -> unit) =
     Html.div [
-        prop.className [ state.WinConditionMet, Bulma.HasBackgroundGreyLight ]
+        prop.style [
+            style.margin 25
+            style.padding 15
+            style.paddingBottom 25          
+        ]
+
+        prop.className [ 
+            true, Bulma.IsFullheight
+            state.WinConditionMet, Bulma.HasBackgroundGreyLight
+            not state.WinConditionMet, Bulma.HasBackgroundWhiteBis
+        ]
+
         prop.children [
-            title            
+            TitleView.renderTitleView            
             if state.WinConditionMet
-            then winView dispatch
-            else gameBoard state dispatch
-            resetButton state.WinConditionMet dispatch
+            then WinConditionView.renderWinConditionView dispatch
+            else BingoCardView.renderBingoCardView state dispatch
+            ResetButtonView.renderResetButtonView state.WinConditionMet dispatch
         ]
     ]

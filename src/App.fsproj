@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplicationStyles.fs" />
-    <Compile Include="ModuleExtensions.fs" />
     <Compile Include="State.fs" />
     <Compile Include="Initialize.fs" />
     <Compile Include="Update.fs" />
