@@ -188,12 +188,12 @@ module WinConditionView =
 
         list.[index]
 
-    let renderWinIcon =
+    let renderWinIcon icon =
         Html.i [
-            prop.className (sprintf "%s fa-5x fa-spin" (pickRandom icons))
+            prop.className (sprintf "%s fa-5x fa-spin" icon)
         ]
 
-    let renderWinIconView =
+    let renderWinIconView icon =
         Html.div [
             prop.className [ 
                 Bulma.HasTextDanger
@@ -202,7 +202,7 @@ module WinConditionView =
             ]
 
             prop.children [
-                 renderWinIcon
+                 renderWinIcon icon
             ]                        
         ]
 
@@ -223,24 +223,26 @@ module WinConditionView =
             prop.text "You've won!"
         ]
 
-    let renderSnarkCommentView =
+    let renderSnarkCommentView (comment: string) =
         Html.p [
             prop.style [ style.marginBottom 15 ]
             prop.classes [ Bulma.IsSize4; Bulma.HasTextGreyDark; Bulma.IsFullwidth; Bulma.HasTextCentered ]
-            prop.text (pickRandom snark)
+            prop.text comment
         ]
 
-    let renderWinBodyView =
+    let renderWinBodyView icon comment =
         Html.div [
             prop.className Bulma.HeroBody
             prop.children [
-                renderWinIconView
+                renderWinIconView icon
                 renderAnnouncementView                               
-                renderSnarkCommentView              
+                renderSnarkCommentView comment           
             ]
         ]
 
     let renderWinConditionView (dispatch: Msg -> unit) =
+        let icon = pickRandom icons
+        let comment = pickRandom snark
         Html.div [
             prop.style [ 
                 style.margin 55
@@ -254,7 +256,7 @@ module WinConditionView =
             ]
 
             prop.children [
-                renderWinBodyView
+                renderWinBodyView icon comment
             ]
         ]
 
