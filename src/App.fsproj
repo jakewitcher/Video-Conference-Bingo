@@ -4,8 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplicationStyles.fs" />
-    <Compile Include="ViewHelpers.fs" />
     <Compile Include="ModuleExtensions.fs" />
+    <Compile Include="State.fs" />
+    <Compile Include="Initialize.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="Render.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
